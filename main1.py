@@ -3,7 +3,6 @@ import numpy as np
 import json
 from tkinter import *
 import threading
-import re
 
 response_lock = threading.Lock()
 response = ""
@@ -19,6 +18,29 @@ tokenizer_path = model.get_path_to_tokenizer_file()
 
 with open(vocab_path, "r", encoding="utf-8") as file:
     vocab_dict = json.loads(file.read())
+
+with open(tokenizer_path, "r", encoding="utf-8") as file:
+    tokenizer_dict = json.loads(file.read())
+
+def split(prompt):
+    tokens = []
+    word = ""
+    for i, ch in enumerate(prompt):
+        if ch == " ":
+            if word != "":
+                tokens.append(word)
+                word = " "
+        else:
+            word += ch
+        if i == len(prompt) - 1 and word != "":
+            tokens.append(word)
+    for i in range(len(tokens)):
+        word = list(tokens[i])
+        for x in range(len(word)):
+            if word[x] == " ":
+                word[x] = "Ġ"
+        tokens[i] = "".join(word)
+    return tokens
 
 
 def Check_for_stop_and_add_word(word, state) -> bool:
@@ -69,103 +91,75 @@ def Check_for_stop_and_add_word(word, state) -> bool:
 
 history = ""
 
-def remove_spaces(word):
-    for i, ch in enumerate(word):
-        if ch != " ":
-            return (word[i:])
-    return word
+def encode_word(word):
+    tokens = []
+    start = 0
 
-
-def splite_one_word(word):
-    array = []
-    buffer = ""
-    for ch in word:
-        if ch.isalpha() or ch == ' ' or ch == '\n':
-            buffer += ch
-        else:
-            if buffer != "":
-                array.append(buffer)
-                buffer = ""
-            array.append(ch)
-    if buffer != "":
-        array.append(buffer)
-        buffer = ""
-    return array
-
+    while start < len(word):
+        found = False
+        for end in range(len(word), start, -1):
+            piece = word[start:end]
+            token_id = vocab_dict.get(piece)
+            if token_id is not None:
+                tokens.append(token_id)
+                start = end
+                found = True
+                break
+        if not found:
+            start += 1
+    return tokens
 
 def encode(prompt) -> list[int]:
     global vocab_dict
-    # words = prompt.split()
-    words = re.findall(r'\s*\S+', prompt)
+
+    words = split(prompt)
 
     tokens: list[int] = []
 
     for word in words:
-        token_id = vocab_dict.get(word, -1)
-        if token_id == -1:
-            subwords = splite_one_word(word)
-            for subword in subwords:
-                subword = remove_spaces(subword)
-                if subword.startswith("\n"):
-                    tokens.append(715)
-                sub_token_id = vocab_dict.get(subword.strip(), -1)
-                if sub_token_id == -1:
-                    # print(f"cant find this -> '{subword}'")
-                    for i in subword:
-                        ww = vocab_dict.get(i, -1)
-                        if ww != -1:
-                            tokens.append(ww)
-                else:
-                    tokens.append(sub_token_id)
-        else:
-            tokens.append(token_id)
+        to = encode_word(word)
+        for i in to:
+            tokens.append(i)
     return tokens
+
+
+# print(tokenizer_dict)
+
+def decode(logits):
+    pass
+
+# print ("' Hi' --> " + str(model.encode(" Hi")))
+# print ("' Hi' --> " + str(vocab_dict.get("ĠHi", -1)))
 
 def ask(quastion):
     global stop, history, response
     response = ""
-    prompt = f"History: {history}\nUser:{quastion} \nAssistant: "
+    prompt = f"{history}\nUser: {quastion} \nAssistant: "
     stop = False
     state = {"user": "", "the_user_says": ""}
     counter = 1
     break_in_dot = False
 
     while True:
-        tokens = model.encode(prompt)
-        tokens_array = tokens[0].tolist()
-        # print("the package encode ->> " + str(tokens_array))
+        # tokens = model.encode(prompt)
+        # tokens_array = tokens[0].tolist()
 
-        tokens = encode(prompt);
-        tokens_array = tokens
-
-        # print("my function encode ->> " + str(tokens_array))
+        tokens_array = encode(prompt)
 
         predictions = model.get_logits_from_input_ids(tokens_array)
 
         # next_token = np.argmax(predictions)
 
         next_token = np.argpartition(predictions, -2)
-
+        print(next_token[-1])
         word = model.decode(next_token[-1])
-        # print(f"the word is -> '{word}'")
-        # print(next_token[-1])
-        # word1 = model.decode(next_token[-2])
 
-        # word = word.strip()
-
-        if (response and response[-1] !=" " and response[-1] != "\n") and word.strip() not in ["\n", ",", "!", "?", "."]:
-            response += " "
-
-        if response and (response[-1] == "\n" or response.endswith("\n ")) and word.strip() == "\n":
-            break
-        if prompt.endswith("\n\n") or prompt.endswith("\n \n"):
-            break
+        # if prompt.endswith("\n\n") or prompt.endswith("\n \n"):
+        #     break
 
         if Check_for_stop_and_add_word(word, state):
             break
-        
-        if (prompt[-1] !=" " and prompt[-1] != "\n") and word not in ["\n", ",", "!", "?", "."]:
-            prompt += " "
+
         prompt += word
 
         if word == ".":
