@@ -13,14 +13,14 @@ stop = False
 lock = threading.Lock()
 
 vocab_path = model.get_path_to_vocab_file()
-tokenizer_path = model.get_path_to_tokenizer_file()
 
 
 with open(vocab_path, "r", encoding="utf-8") as file:
     vocab_dict = json.loads(file.read())
 
-with open(tokenizer_path, "r", encoding="utf-8") as file:
-    tokenizer_dict = json.loads(file.read())
+id_to_token = {}
+for key, value in vocab_dict.items():
+    id_to_token[value] = key
 
 def split(prompt):
     tokens = []
@@ -123,13 +123,18 @@ def encode(prompt) -> list[int]:
     return tokens
 
 
-# print(tokenizer_dict)
+def decode(token_id):
+    if token_id == 5267:
+        return "?\n"
+    word = id_to_token.get(token_id, "")
 
-def decode(logits):
-    pass
+    word = word.replace("Ġ", " ")
 
-# print ("' Hi' --> " + str(model.encode(" Hi")))
+    return word
+
+# print ("'\\n' --> " + str(model.encode("\n")))
 # print ("' Hi' --> " + str(vocab_dict.get("ĠHi", -1)))
+# print ("'?Ċ' --> '" + str(model.decode(5267))+"'")
 
 def ask(quastion):
     global stop, history, response
@@ -152,8 +157,10 @@ def ask(quastion):
 
         next_token = np.argpartition(predictions, -2)
         print(next_token[-1])
-        word = model.decode(next_token[-1])
-
+        # word = model.decode(next_token[-1])
+        
+        word = decode(next_token[-1])
+        print(f"code: {next_token[-1]} value: {word}")
         # if prompt.endswith("\n\n") or prompt.endswith("\n \n"):
         #     break
 
