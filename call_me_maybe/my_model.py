@@ -70,16 +70,11 @@ class My_Model:
         return ""
 
 
-    
 
+prompt = "hi how are you?"
 
 model = My_Model()
 
-prompt = "User: hi Assistant: hi, how can i help you? User: hello how are you? Assistant: "
-while True:
 
-    prompt += model.get_next_token(prompt)
-    print(prompt)
+model.get_next_token(prompt)
 
-    if "User:" in prompt[-8:]:
-        break

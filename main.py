@@ -90,7 +90,7 @@ while True:
     print(word, end = "", flush=True)
 
 
-input = f'Functions:{file_content}\nQuestion: What is the sum of 2 and 3?\nAnswer: ' + '{"function": "' + response + '", "parameters": {"'
+input = f'Functions:{file_content}\nQuestion: What is the sum of 2 and -3?\nAnswer: ' + '{"function": "' + response + '", "parameters": {"'
 
 parameters = '{"'
 
@@ -118,3 +118,24 @@ print("\n\n")
 print(response)
 
 print(parameters)
+
+
+
+
+
+
+
+# the output should be like this -. 
+
+
+
+# [
+#   {
+#     "prompt": "What is the sum of 2 and 3?",
+#     "name": "fn_add_numbers",
+#     "parameters": {
+#       "a": 2,
+#       "b": 3
+#     }
+#   }
+# ]
