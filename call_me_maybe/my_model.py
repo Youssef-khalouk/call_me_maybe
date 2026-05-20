@@ -71,10 +71,14 @@ class My_Model:
 
 
 
-prompt = "hi how are you?"
+prompt = "What is the sum of 2 and 3?"
 
 model = My_Model()
 
 
-model.get_next_token(prompt)
+print(model.encode(prompt))
+
+for i in model.encode(prompt):
+    print(f"{i}:{model.decode(i)}")
+
 

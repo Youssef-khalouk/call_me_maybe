@@ -10,6 +10,8 @@ class GetData(BaseModel):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        self.functions_data: any = None
+
         with open(self.functions_path, "r") as file:
             try:
                 self.functions_data = json.loads(file.read())

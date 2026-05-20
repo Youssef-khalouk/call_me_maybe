@@ -158,9 +158,8 @@ def ask(quastion):
         next_token = np.argpartition(predictions, -2)
         print(next_token[-1])
         # word = model.decode(next_token[-1])
-        
         word = decode(next_token[-1])
-        print(f"code: {next_token[-1]} value: {word}")
+        # print(f"code: {next_token[-1]} value: {word}")
         # if prompt.endswith("\n\n") or prompt.endswith("\n \n"):
         #     break
 

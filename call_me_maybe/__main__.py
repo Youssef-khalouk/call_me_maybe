@@ -1,6 +1,6 @@
 import argparse
 from .get_data import GetData
-from .my_model import MyModel
+from .my_model import My_Model
 
 
 if __name__ == "__main__":
