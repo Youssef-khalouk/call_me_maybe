@@ -8,9 +8,8 @@ from call_me_maybe.my_model import My_Model
 
 response_lock = threading.Lock()
 response = ""
-
-model = Small_LLM_Model()
-
+history = ""
+model = My_Model()
 stop = False
 lock = threading.Lock()
 
@@ -60,8 +59,6 @@ def Check_for_stop_and_add_word(word, state) -> bool:
         response += word
     return False
 
-history = ""
-model = My_Model()
 
 def ask(quastion):
     global stop, history, response
