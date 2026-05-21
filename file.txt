@@ -1,2 +1,0 @@
-Question: hello there how are you doing
-Answer:

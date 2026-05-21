@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 import json
+from typing import Any
 
 
 class GetData(BaseModel):
@@ -7,14 +8,18 @@ class GetData(BaseModel):
     input_path: str
     output_path: str
 
+    functions_data: Any = None
+    prompts_data: Any = None
+    functions_name: list[str] = []
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-        self.functions_data: any = None
 
         with open(self.functions_path, "r") as file:
             try:
                 self.functions_data = json.loads(file.read())
+                for i in self.functions_data:
+                    self.functions_name.append(i["name"])
             except json.JSONDecodeError:
                 print(f"invalid functions json file '{self.functions_path}'")
 
@@ -29,3 +34,6 @@ class GetData(BaseModel):
 
     def get_prompts_json(self) -> any:
         return self.prompts_data
+    
+    def get_functions_name(self) -> list[str]:
+        return self.functions_name

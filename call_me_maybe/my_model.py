@@ -16,7 +16,7 @@ class My_Model:
         self.id_to_token: dict[int, str] = {}
         for key, value in self.vocabulary.items():
             self.id_to_token[value] = key
-    
+
     @staticmethod
     def _split(prompt: str) -> list[str]:
         return prompt.replace(" ", " Ġ").split()
@@ -68,17 +68,4 @@ class My_Model:
         if len(self.top_tokens) >= 2:
             return self.decode(self.top_tokens[-2])
         return ""
-
-
-
-prompt = "What is the sum of 2 and 3?"
-
-model = My_Model()
-
-
-print(model.encode(prompt))
-
-for i in model.encode(prompt):
-    print(f"{i}:{model.decode(i)}")
-
 
