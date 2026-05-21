@@ -3,6 +3,8 @@ import numpy as np
 import json
 from tkinter import *
 import threading
+from call_me_maybe.my_model import My_Model
+
 
 response_lock = threading.Lock()
 response = ""
@@ -11,37 +13,6 @@ model = Small_LLM_Model()
 
 stop = False
 lock = threading.Lock()
-
-vocab_path = model.get_path_to_vocab_file()
-
-
-with open(vocab_path, "r", encoding="utf-8") as file:
-    vocab_dict = json.loads(file.read())
-
-id_to_token = {}
-for key, value in vocab_dict.items():
-    id_to_token[value] = key
-
-def split(prompt):
-    tokens = []
-    word = ""
-    for i, ch in enumerate(prompt):
-        if ch == " ":
-            if word != "":
-                tokens.append(word)
-                word = " "
-        else:
-            word += ch
-        if i == len(prompt) - 1 and word != "":
-            tokens.append(word)
-    for i in range(len(tokens)):
-        word = list(tokens[i])
-        for x in range(len(word)):
-            if word[x] == " ":
-                word[x] = "Ġ"
-        tokens[i] = "".join(word)
-    return tokens
-
 
 def Check_for_stop_and_add_word(word, state) -> bool:
     global response
@@ -90,51 +61,7 @@ def Check_for_stop_and_add_word(word, state) -> bool:
     return False
 
 history = ""
-
-def encode_word(word):
-    tokens = []
-    start = 0
-
-    while start < len(word):
-        found = False
-        for end in range(len(word), start, -1):
-            piece = word[start:end]
-            token_id = vocab_dict.get(piece)
-            if token_id is not None:
-                tokens.append(token_id)
-                start = end
-                found = True
-                break
-        if not found:
-            start += 1
-    return tokens
-
-def encode(prompt) -> list[int]:
-    global vocab_dict
-
-    words = split(prompt)
-
-    tokens: list[int] = []
-
-    for word in words:
-        to = encode_word(word)
-        for i in to:
-            tokens.append(i)
-    return tokens
-
-
-def decode(token_id):
-    if token_id == 5267:
-        return "?\n"
-    word = id_to_token.get(token_id, "")
-
-    word = word.replace("Ġ", " ")
-
-    return word
-
-# print ("'\\n' --> " + str(model.encode("\n")))
-# print ("' Hi' --> " + str(vocab_dict.get("ĠHi", -1)))
-# print ("'?Ċ' --> '" + str(model.decode(5267))+"'")
+model = My_Model()
 
 def ask(quastion):
     global stop, history, response
@@ -144,24 +71,11 @@ def ask(quastion):
     state = {"user": "", "the_user_says": ""}
     counter = 1
     break_in_dot = False
+        
 
     while True:
-        # tokens = model.encode(prompt)
-        # tokens_array = tokens[0].tolist()
-
-        tokens_array = encode(prompt)
-
-        predictions = model.get_logits_from_input_ids(tokens_array)
-
-        # next_token = np.argmax(predictions)
-
-        next_token = np.argpartition(predictions, -2)
-        print(next_token[-1])
-        # word = model.decode(next_token[-1])
-        word = decode(next_token[-1])
-        # print(f"code: {next_token[-1]} value: {word}")
-        # if prompt.endswith("\n\n") or prompt.endswith("\n \n"):
-        #     break
+        
+        word = model.get_next_token(prompt)
 
         if Check_for_stop_and_add_word(word, state):
             break
@@ -184,9 +98,10 @@ def ask(quastion):
         history += "\n"
     history += f"User: {quastion} \nAssistant: {response} "
 
-    # print(prompt)
+    print(history, end="")
 
 root = Tk()
+
 root.geometry("500x500+300+200")
 
 entry = Entry()

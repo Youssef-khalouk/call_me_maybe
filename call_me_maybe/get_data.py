@@ -37,3 +37,6 @@ class GetData(BaseModel):
     
     def get_functions_name(self) -> list[str]:
         return self.functions_name
+    
+    def get_output_path(self):
+        return self.output_path
