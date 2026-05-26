@@ -82,9 +82,9 @@ def get_paramters(model: any, function_json: any, questoin: str) -> dict:
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--functions_definition")
-    parser.add_argument("--input")
-    parser.add_argument("--output")
+    parser.add_argument("--functions_definition", default="data/input/functions_definition.json")
+    parser.add_argument("--input", default="data/input/function_calling_tests.json")
+    parser.add_argument("--output", default="data/output/function_calls.json")
     args = parser.parse_args()
 
     data = GetData(
