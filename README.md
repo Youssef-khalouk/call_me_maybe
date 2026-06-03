@@ -1,101 +1,368 @@
-# call_me_maybe
+*This project has been created as part of the 42 curriculum by ykhalouk.*
 
-A local LLM inference toolkit for experimenting with function calling and prompt-driven output generation using a Hugging Face causal language model.
+# Call Me Maybe
 
-## Overview
+## Description
 
-This repository contains:
+Call Me Maybe is a function-calling system built on top of a language model. The goal of the project is to demonstrate how constrained decoding can be used to force a model to generate valid function calls instead of arbitrary text.
 
-- `llm_sdk/` — a lightweight local SDK for loading and running a Hugging Face causal language model.
-- `call_me_maybe/` — a small application layer that:
-  - loads function definitions and user prompts from JSON files,
-  - uses a local model to predict which function should be called,
-  - extracts function arguments token-by-token,
-  - writes the results to an output JSON file.
-- `data/` — sample input and output data for testing the function calling flow.
+The program receives a user prompt, analyzes the request, and generates a structured function call when appropriate. By restricting the set of valid tokens during generation, the system ensures that the produced output follows the required format and remains syntactically correct.
 
-## Key Components
+The project explores several important concepts related to modern Large Language Models (LLMs), including tokenization, logits, decoding strategies, constrained decoding, and function calling.
 
-- `llm_sdk/__init__.py`
-  - `Small_LLM_Model` wraps a Hugging Face causal LM, tokenization, and logits extraction.
-- `call_me_maybe/get_data.py`
-  - `GetData` loads functions and prompts from JSON files and provides helper accessors.
-- `call_me_maybe/my_model.py`
-  - `My_Model` wraps `Small_LLM_Model` with a simple tokenizer/decoder and next-token utilities.
-- `call_me_maybe/__main__.py`
-  - CLI entry point that runs the function calling pipeline from JSON input to JSON output.
-- `call_me_maybe/main.py`
-  - A simple Tkinter UI demo for interacting with the model in a chat-like manner.
+## Features
 
-## Requirements
+* Custom tokenizer and vocabulary handling
+* Custom decoding implementation
+* Constrained decoding
+* Function-call generation
+* Structured JSON output
+* Validation of generated function calls
+* Command-line interface
 
-- Python 3.10+
-- `torch>=2.0.0`
-- `transformers>=4.40.0`
-- `huggingface-hub>=0.20.0`
+---
 
-## Install
+## Instructions
+
+### Requirements
+
+* Python 3.11+
+* uv (recommended)
+
+### Installation
 
 ```bash
-python -m pip install -e .
+make install
 ```
 
-If you prefer a clean environment:
+or manually:
 
 ```bash
-python -m venv .venv
-.\.venv\Scripts\activate
-python -m pip install -e .
+uv sync
 ```
 
-## Usage
-
-### Run the function calling pipeline
+### Running
 
 ```bash
-python -m call_me_maybe
+make run
 ```
 
-If you use `uv`, the equivalent command is:
+or:
 
 ```bash
-uv run python -m call_me_maybe
+uv run python main.py
 ```
 
-By default, the script uses:
-
-- `data/input/functions_definition.json`
-- `data/input/function_calling_tests.json`
-- `data/output/function_calls.json`
-
-Custom paths can be provided:
+### Debugging
 
 ```bash
-python -m call_me_maybe --functions_definition data/input/functions_definition.json \
-  --input data/input/function_calling_tests.json \
-  --output data/output/function_calls.json
+make debug
 ```
 
-### Run the UI demo
+### Linting
 
 ```bash
-python call_me_maybe/main.py
+make lint
 ```
 
-This launches a small Tkinter window for interactive model prompting.
+### Strict Linting
 
-## Data Format
+```bash
+make lint-strict
+```
 
-- `functions_definition.json` should contain a list of function definitions with names and parameter schemas.
-- `function_calling_tests.json` should contain a list of prompt objects, each with a `prompt` field.
-- Output is written as a list of selected function calls with `prompt`, `name`, and `parameters`.
+### Cleaning
 
-## Notes
+```bash
+make clean
+```
 
-- The `llm_sdk` package downloads tokenizer files from the Hugging Face Hub and loads a local causal language model.
-- `call_me_maybe/__main__.py` implements a custom token decoding loop for function selection and parameter extraction.
-- The current code is optimized for experimentation rather than production.
+---
 
-## License
+## Algorithm Explanation
 
-Add your preferred license here.
+### Constrained Decoding
+
+The core of the project is a constrained decoding algorithm.
+
+Normally, an LLM predicts a probability distribution over the entire vocabulary. During decoding, the token with the highest probability (or a sampled token) is selected.
+
+In this project, decoding is restricted according to the current generation state.
+
+Example:
+
+If the model is generating:
+
+```json
+{
+  "function":
+```
+
+only valid tokens that can legally follow this position are allowed.
+
+The algorithm performs the following steps:
+
+1. Obtain logits from the model.
+2. Determine the current decoding state.
+3. Build a list of valid next tokens.
+4. Mask all invalid tokens.
+5. Select the highest-scoring valid token.
+6. Append the token to the output.
+7. Repeat until completion.
+
+This guarantees that generated outputs always satisfy the expected grammar.
+
+### Token Masking
+
+Invalid tokens are assigned negative infinity:
+
+```python
+logits[token_id] = -float("inf")
+```
+
+As a result, the decoder can never select them.
+
+### State Tracking
+
+The decoder maintains information about:
+
+* Current JSON nesting level
+* Current object key
+* Current function being generated
+* Allowed parameter names
+* End-of-generation conditions
+
+This information determines which tokens are valid at each step.
+
+---
+
+## Design Decisions
+
+### Custom Decoder
+
+A custom decoder was implemented instead of using an existing framework.
+
+Reasons:
+
+* Better understanding of LLM internals
+* Full control over token selection
+* Easier experimentation
+* Educational value
+
+### Deterministic Generation
+
+The project primarily uses greedy decoding:
+
+```python
+next_token = argmax(valid_logits)
+```
+
+Benefits:
+
+* Reproducible results
+* Easier debugging
+* Predictable behavior
+
+### JSON-Based Function Calls
+
+JSON was selected because:
+
+* Human-readable
+* Easy to validate
+* Common industry format
+* Compatible with most APIs
+
+---
+
+## Performance Analysis
+
+### Accuracy
+
+The constrained decoder guarantees syntactically valid outputs.
+
+Without constraints:
+
+* Invalid JSON may be generated.
+* Function names may be misspelled.
+* Required arguments may be omitted.
+
+With constraints:
+
+* Only valid structures are produced.
+* Function names remain valid.
+* Output format is guaranteed.
+
+### Speed
+
+Constrained decoding introduces additional overhead because valid-token sets must be computed at each generation step.
+
+However, for the scale of this project, the overhead remains small and does not significantly impact user experience.
+
+### Reliability
+
+Reliability is improved because invalid outputs are prevented before generation rather than corrected afterward.
+
+---
+
+## Challenges Faced
+
+### Tokenization
+
+Handling unknown words and token boundaries required careful design.
+
+Solution:
+
+* Vocabulary lookup
+* Longest-match token search
+* Fallback mechanisms
+
+### Constrained Generation
+
+Determining which tokens should be valid at each state was initially difficult.
+
+Solution:
+
+* Explicit state machine
+* Rule-based validation
+* Incremental testing
+
+### JSON Validation
+
+Maintaining correct nesting and structure during generation was challenging.
+
+Solution:
+
+* Context tracking
+* Grammar constraints
+* Structured output rules
+
+---
+
+## Testing Strategy
+
+Several testing approaches were used.
+
+### Unit Tests
+
+Individual components were tested:
+
+* Tokenizer
+* Encoder
+* Decoder
+* Constraint engine
+
+### Integration Tests
+
+End-to-end tests were performed:
+
+```text
+Prompt -> Encoding -> Model -> Decoding -> Function Call
+```
+
+### Edge Cases
+
+Special attention was given to:
+
+* Empty prompts
+* Unknown words
+* Invalid function names
+* Missing arguments
+* Deeply nested structures
+
+### Manual Testing
+
+Various prompts were entered manually to verify correctness and consistency.
+
+---
+
+## Example Usage
+
+### Example 1
+
+Input:
+
+```text
+What's the weather in Paris?
+```
+
+Output:
+
+```json
+{
+  "function": "get_weather",
+  "arguments": {
+    "city": "Paris"
+  }
+}
+```
+
+### Example 2
+
+Input:
+
+```text
+Send an email to Alice
+```
+
+Output:
+
+```json
+{
+  "function": "send_email",
+  "arguments": {
+    "recipient": "Alice"
+  }
+}
+```
+
+### Example 3
+
+Run the application:
+
+```bash
+make run
+```
+
+Debug:
+
+```bash
+make debug
+```
+
+Lint:
+
+```bash
+make lint
+```
+
+---
+
+## Resources
+
+### Documentation
+
+* Python Documentation
+* NumPy Documentation
+* mypy Documentation
+* flake8 Documentation
+
+### Learning Resources
+
+* Attention Is All You Need
+* OpenAI Function Calling Documentation
+* Hugging Face Documentation
+* Tokenization and Decoding Tutorials
+
+### AI Usage
+
+AI tools were used as learning assistants during the development of the project.
+
+Tasks where AI was used:
+
+* Understanding constrained decoding concepts
+* Reviewing implementation ideas
+* Explaining tokenizer behavior
+* Clarifying LLM terminology
+* Assisting with debugging discussions
+
+All implementation decisions, coding, testing, and final validation were performed manually.

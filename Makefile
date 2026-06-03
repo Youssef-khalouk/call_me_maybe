@@ -1,31 +1,39 @@
-# Makefile for call_me_maybe
+.PHONY: help install run debug clean lint lint-strict
 
-PYTHON ?= python
-PIP ?= $(PYTHON) -m pip
-PACKAGE = .
-
-.PHONY: help install develop run uv-run clean
+parameters =    --functions_definition data/input/functions_definition.json \
+				--input data/input/function_calling_tests.json \
+				--output data/output/function_calls.json
 
 help:
 	@echo "Available targets:"
-	@echo "  install   - install package dependencies in editable mode"
-	@echo "  develop   - create virtualenv and install editable package"
-	@echo "  run       - run the function calling pipeline"
-	@echo "  uv-run    - run the pipeline with uv if available"
-	@echo "  clean     - remove Python build artifacts"
+	@echo "  make install      Install project dependencies"
+	@echo "  make run          Run the application"
+	@echo "  make debug        Run the application with pdb"
+	@echo "  make clean        Remove cache and temporary files"
+	@echo "  make lint         Run flake8 and mypy with required flags"
+	@echo "  make lint-strict  Run flake8 and mypy --strict"
 
 install:
-	$(PIP) install -e $(PACKAGE)
-
-develop:
-	python -m venv .venv
-	.venv\\Scripts\\activate && $(PIP) install -e $(PACKAGE)
+	pip install flake8
+	pip install mypy
+	uv sync
 
 run:
-	$(PYTHON) -m call_me_maybe
+	uv run python -m  src $(parameters)
 
-uv-run:
-	uv run $(PYTHON) -m call_me_maybe
+debug:
+	uv run python -m pdb src $(parameters)
 
 clean:
-	-rm -rf build dist *.egg-info
+	find . -type d -name "__pycache__" -exec rm -rf {} +
+	find . -type d -name ".mypy_cache" -exec rm -rf {} +
+	find . -type d -name ".pytest_cache" -exec rm -rf {} +
+	find . -type f -name "*.pyc" -delete
+
+lint:
+	flake8 src
+	mypy src    --warn-return-any \
+	            --warn-unused-ignores \
+	            --ignore-missing-imports \
+	            --disallow-untyped-defs \
+	            --check-untyped-defs
