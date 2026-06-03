@@ -4,16 +4,19 @@ from .my_model import My_Model
 import numpy as np
 import os
 import json
+from typing import Any
 
 
 def is_in(functions_name: list[str], token: str) -> bool:
+    """Return True if any function name contains the given token."""
     for function in functions_name:
         if token in function:
             return True
     return False
 
 
-def generate_parameters(function_json: any) -> list[str]:
+def generate_parameters(function_json: Any) -> list[str]:
+    """Extract parameter names from a function description JSON."""
     paramters = function_json["parameters"]
     array = []
     for p in paramters:
@@ -24,19 +27,21 @@ def generate_parameters(function_json: any) -> list[str]:
 json_content = []
 
 
-def save_in_file(file_path):
+def save_in_file(file_path: str) -> None:
+    """Write the current JSON content to the specified file path."""
     with open(file_path, "w") as file:
         file.write(json.dumps(json_content, indent=4))
 
 
-def get_paramters(model: any, function_json: any, questoin: str) -> dict:
+def get_paramters(model: Any, function_json: Any, questoin: str) -> dict:
+    """Generate function arguments from model tokens for the requested function."""
     paramters = generate_parameters(function_json)
     prompt = (
         f'/nothink\nFunctions:{function_json}\n'
         f'Question: {questoin}\nParameters: '
         '{"function": "' + function_json["name"] + '", "parameters": '
     )
-    para_answer = {}
+    para_answer: dict[str, Any] = {}
     print("   ", end="", flush=True)
     prompt += '{'
     for p in paramters:
@@ -82,8 +87,10 @@ def get_paramters(model: any, function_json: any, questoin: str) -> dict:
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--functions_definition", default="data/input/functions_definition.json")
-    parser.add_argument("--input", default="data/input/function_calling_tests.json")
+    parser.add_argument("--functions_definition",
+                        default="data/input/functions_definition.json")
+    parser.add_argument("--input",
+                        default="data/input/function_calling_tests.json")
     parser.add_argument("--output", default="data/output/function_calls.json")
     args = parser.parse_args()
 
@@ -142,5 +149,4 @@ if __name__ == "__main__":
                 json_content.append(function_json)
                 save_in_file(data.get_output_path())
                 break
-
     print("")
