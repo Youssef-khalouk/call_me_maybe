@@ -1,5 +1,9 @@
 .PHONY: help install run debug clean lint lint-strict
 
+export HF_HOME=/tmp/hf_home
+export UV_CACHE_DIR=/tmp/uv_cache_dir
+export UV_PROJECT_ENVIRONMENT=/tmp/uv_venv
+
 parameters =    --functions_definition data/input/functions_definition.json \
 				--input data/input/function_calling_tests.json \
 				--output data/output/function_calls.json
@@ -8,10 +12,10 @@ help:
 	@echo "Available targets:"
 	@echo "  make install      Install project dependencies"
 	@echo "  make run          Run the application"
+	@echo "  make runs         Run the application with no parameters"
 	@echo "  make debug        Run the application with pdb"
 	@echo "  make clean        Remove cache and temporary files"
 	@echo "  make lint         Run flake8 and mypy with required flags"
-	@echo "  make lint-strict  Run flake8 and mypy --strict"
 
 install:
 	pip install flake8
@@ -20,6 +24,9 @@ install:
 
 run:
 	uv run python -m  src $(parameters)
+
+runs:
+	uv run python -m  src
 
 debug:
 	uv run python -m pdb src $(parameters)
