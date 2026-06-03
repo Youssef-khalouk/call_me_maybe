@@ -29,7 +29,7 @@ class GetData(BaseModel):
             print("there is no file name ", end="")
             print(f"'{self.functions_path}'.")
             sys.exit(1)
-        
+
         try:
             with open(self.input_path, "r") as file:
                 try:
