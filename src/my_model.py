@@ -59,7 +59,8 @@ class My_Model:
 
     def get_next_token_id(self, tokens_array: list[int]) -> int:
         """Select the highest-scoring next token id based on logits."""
-        self.top_tokens = np.argpartition(self.get_logits(tokens_array), -2)
+        self.top_tokens = list(
+            np.argpartition(self.get_logits(tokens_array), -2))
         return self.top_tokens[-1]
 
     def get_second_logit(self) -> int | None:

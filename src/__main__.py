@@ -24,7 +24,7 @@ def generate_parameters(function_json: Any) -> list[str]:
     return array
 
 
-json_content = []
+json_content: list[Any] = []
 
 
 def save_in_file(file_path: str) -> None:
@@ -34,7 +34,10 @@ def save_in_file(file_path: str) -> None:
 
 
 def get_paramters(model: Any, function_json: Any, questoin: str) -> dict:
-    """Generate function arguments from model tokens for the requested function."""
+    """
+    Generate function arguments from model tokens
+    for the requested function.
+    """
     paramters = generate_parameters(function_json)
     prompt = (
         f'/nothink\nFunctions:{function_json}\n'

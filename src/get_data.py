@@ -24,7 +24,8 @@ class GetData(BaseModel):
                     for i in self.functions_data:
                         self.functions_name.append(i["name"])
                 except json.JSONDecodeError:
-                    print(f"invalid functions json file '{self.functions_path}'")
+                    print("invalid functions json file", end="")
+                    print(f"'{self.functions_path}'")
         except (FileNotFoundError):
             print("there is no file name ", end="")
             print(f"'{self.functions_path}'.")

@@ -18,9 +18,9 @@ help:
 	@echo "  make lint         Run flake8 and mypy with required flags"
 
 install:
-	pip install flake8
-	pip install mypy
 	uv sync
+	uv pip install flake8
+	uv pip install mypy
 
 run:
 	uv run python -m  src $(parameters)
@@ -36,6 +36,7 @@ clean:
 	find . -type d -name ".mypy_cache" -exec rm -rf {} +
 	find . -type d -name ".pytest_cache" -exec rm -rf {} +
 	find . -type f -name "*.pyc" -delete
+	rm -rf uv.lock
 
 lint:
 	flake8 src
