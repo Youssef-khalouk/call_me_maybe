@@ -1,7 +1,4 @@
 
-/data
-huggingface/
-
 __pycache__/
 *.pyc
 *.pyo
@@ -11,5 +8,3 @@ __pycache__/
 
 .mypy_cache/
 .pytest_cache/
-
-uv.lock
