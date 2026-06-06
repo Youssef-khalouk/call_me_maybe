@@ -17,6 +17,21 @@ class GetData(BaseModel):
     @model_validator(mode="after")
     def validate_json_content(self) -> None:
         """Validate the content of the JSON files after initialization."""
+        if self.functions_path.endswith(".json") is False:
+            print("the functions definition file "
+                  f"'{self.functions_path}' must be a json file",
+                file=sys.stderr)
+            sys.exit(1)
+        if self.input_path.endswith(".json") is False:
+            print("the input file "
+                f"'{self.input_path}' must be a json file",
+                file=sys.stderr)
+            sys.exit(1)
+        if self.output_path.endswith(".json") is False:
+            print("the output file "
+                  f"'{self.output_path}' must be a json file",
+                  file=sys.stderr)
+            sys.exit(1)
         self.load_data()
         for function in self.functions_data:
             name = function.get("name", None)
@@ -57,27 +72,27 @@ class GetData(BaseModel):
                         sys.exit(1)
                     for k, v in parameters.items():
                         if not isinstance(k, str):
-                            print(f"the key '{k}' of the 'parameters' \
-                                  dictionary must be strings", file=sys.stderr)
+                            print(f"the key '{k}' of the 'parameters' "
+                                  "dictionary must be strings", file=sys.stderr)
                             sys.exit(1)
                         if not isinstance(v, dict):
-                            print(f"the value '{v}' of the 'parameters' \
-                            dictionary must be dictionaries", file=sys.stderr)
+                            print(f"the value '{v}' of the 'parameters' "
+                            "dictionary must be dictionaries", file=sys.stderr)
                             sys.exit(1)
                         else:
                             type_ = v.get("type", None)
                             if type_ is None:
-                                print(f"the parameter '{k}' dosn't have \
-                                      the 'type' key", file=sys.stderr)
+                                print(f"the parameter '{k}' dosn't have "
+                                      "the 'type' key", file=sys.stderr)
                                 sys.exit(1)
                             else:
                                 if not isinstance(type_, str):
-                                    print(f"the 'type' key of the parameter \
-                                    '{k}' must be a string", file=sys.stderr)
+                                    print("the 'type' key of the parameter "
+                                    f"'{k}' must be a string", file=sys.stderr)
                                     sys.exit(1)
                                 if type_ == "":
-                                    print(f"the 'type' key of the parameter \
-                                    '{k}' must not be empty", file=sys.stderr)
+                                    print(f"the 'type' key of the parameter "
+                                    f"'{k}' must not be empty", file=sys.stderr)
                                     sys.exit(1)
             returns_ = function.get("returns", None)
             if returns_ is None:
@@ -92,17 +107,17 @@ class GetData(BaseModel):
                 else:
                     type_ = returns_.get("type", None)
                     if type_ is None:
-                        print("the 'returns' dictionary dosn't \
-                              have the 'type' key", file=sys.stderr)
+                        print("the 'returns' dictionary dosn't "
+                              "have the 'type' key", file=sys.stderr)
                         sys.exit(1)
                     else:
                         if not isinstance(type_, str):
-                            print("the 'type' key of the 'returns' dictionary \
-                                  must be a string", file=sys.stderr)
+                            print("the 'type' key of the 'returns' dictionary "
+                                  "must be a string", file=sys.stderr)
                             sys.exit(1)
                         if type_ == "":
-                            print("the 'type' key of the 'returns' dictionary \
-                                  must not be empty", file=sys.stderr)
+                            print("the 'type' key of the 'returns' dictionary "
+                                  "must not be empty", file=sys.stderr)
                             sys.exit(1)
 
         for prompt in self.prompts_data:
