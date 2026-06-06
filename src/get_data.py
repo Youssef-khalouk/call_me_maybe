@@ -15,7 +15,7 @@ class GetData(BaseModel):
     functions_name: list[str] = []
 
     @model_validator(mode="after")
-    def validate_json_content(self) -> None:
+    def validate_json_content(self) -> "GetData":
         """Validate the content of the JSON files after initialization."""
         if self.functions_path.endswith(".json") is False:
             print("the functions definition file "
@@ -133,6 +133,7 @@ class GetData(BaseModel):
             if not isinstance(prompt_name, str):
                 print("the prompts value must be strings", file=sys.stderr)
                 sys.exit(1)
+        return self
 
     def load_data(self) -> None:
         """
