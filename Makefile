@@ -19,9 +19,11 @@ help:
 
 install:
 	uv sync && \
-	. $(UV_PROJECT_ENVIRONMENT)/bin/activate && \
 	uv pip install flake8 && \
 	uv pip install mypy
+	@echo
+	@echo "To activate the virtual environment, run:"
+	@echo "  source $(UV_PROJECT_ENVIRONMENT)/bin/activate"
 
 run:
 	uv run python -m  src $(parameters)
