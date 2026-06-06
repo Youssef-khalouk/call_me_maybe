@@ -19,6 +19,7 @@ help:
 
 install:
 	uv sync
+	source $(UV_PROJECT_ENVIRONMENT)/bin/activate
 	uv pip install flake8
 	uv pip install mypy
 
