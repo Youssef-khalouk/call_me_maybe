@@ -20,12 +20,12 @@ class GetData(BaseModel):
         if self.functions_path.endswith(".json") is False:
             print("the functions definition file "
                   f"'{self.functions_path}' must be a json file",
-                file=sys.stderr)
+                  file=sys.stderr)
             sys.exit(1)
         if self.input_path.endswith(".json") is False:
             print("the input file "
-                f"'{self.input_path}' must be a json file",
-                file=sys.stderr)
+                  f"'{self.input_path}' must be a json file",
+                  file=sys.stderr)
             sys.exit(1)
         if self.output_path.endswith(".json") is False:
             print("the output file "
@@ -73,11 +73,13 @@ class GetData(BaseModel):
                     for k, v in parameters.items():
                         if not isinstance(k, str):
                             print(f"the key '{k}' of the 'parameters' "
-                                  "dictionary must be strings", file=sys.stderr)
+                                  "dictionary must be strings",
+                                  file=sys.stderr)
                             sys.exit(1)
                         if not isinstance(v, dict):
                             print(f"the value '{v}' of the 'parameters' "
-                            "dictionary must be dictionaries", file=sys.stderr)
+                                  "dictionary must be dictionaries",
+                                  file=sys.stderr)
                             sys.exit(1)
                         else:
                             type_ = v.get("type", None)
@@ -88,11 +90,13 @@ class GetData(BaseModel):
                             else:
                                 if not isinstance(type_, str):
                                     print("the 'type' key of the parameter "
-                                    f"'{k}' must be a string", file=sys.stderr)
+                                          f"'{k}' must be a string",
+                                          file=sys.stderr)
                                     sys.exit(1)
                                 if type_ == "":
                                     print(f"the 'type' key of the parameter "
-                                    f"'{k}' must not be empty", file=sys.stderr)
+                                          f"'{k}' must not be empty",
+                                          file=sys.stderr)
                                     sys.exit(1)
             returns_ = function.get("returns", None)
             if returns_ is None:
