@@ -18,12 +18,10 @@ help:
 	@echo "  make lint         Run flake8 and mypy with required flags"
 
 install:
-	uv sync && \
-	uv pip install flake8 && \
-	uv pip install mypy
+	uv sync
 	@echo
-	@echo "To activate the virtual environment, run:"
-	@echo "  source $(UV_PROJECT_ENVIRONMENT)/bin/activate"
+	@echo "To activate the virtual environment"
+	@echo "  run:  source /tmp/uv_venv/bin/activate"
 
 run:
 	uv run python -m  src $(parameters)
