@@ -18,9 +18,9 @@ help:
 	@echo "  make lint         Run flake8 and mypy with required flags"
 
 install:
-	uv sync
-	. $(UV_PROJECT_ENVIRONMENT)/bin/activate
-	uv pip install flake8
+	uv sync && \
+	. $(UV_PROJECT_ENVIRONMENT)/bin/activate && \
+	uv pip install flake8 && \
 	uv pip install mypy
 
 run:
